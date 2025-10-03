@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_cors import CORS
 
+
 # Initialize extensions
 db = SQLAlchemy()
 migrate = Migrate()
@@ -23,5 +24,7 @@ def create_app():
     # Import and register routes
     from .routes import api_bp
     app.register_blueprint(api_bp)
+
+    from . import models
 
     return app
