@@ -16,3 +16,19 @@ class Game(db.Model):
 
     def __repr__(self):
         return f"<Player {self.name}>"
+
+
+class Move(db.Model):
+    __tablename__ = "moves"
+    id = db.Column(db.Integer, primary_key=True)
+    dice_roll = db.Column(db.Integer, nullable=False)
+    position = db.Column(db.Integer, nullable=False)
+
+    # Foreign keys
+    player_id = db.Column(db.Integer, db.ForeignKey(
+        "players.id"), nullable=False)
+    game_id = db.Column(db.Integer, db.ForeignKey("games.id"), nullable=False)
+
+    # Relationships
+    player = db.relationship("Player", backref="moves")
+    game = db.relationship("Game", backref="moves")
