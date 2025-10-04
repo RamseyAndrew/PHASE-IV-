@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { mainPath, playerStartIndex, victoryLanes, homePositions } from "./pathData";
-import moveSoundFile from "./Assets/move-sound.mp3"; // Import sound file
+import moveSoundFile from "./assets/move-sound.mp3";
 
 function useCaptureLogic() {
   const [positions, setPositions] = useState({
@@ -59,7 +59,6 @@ function useCaptureLogic() {
 
     if (!tokenToMove || tokenToMove.player !== player) return;
 
-    
     moveSound.play().catch((error) => {
       console.error("Failed to play sound:", error);
     });
