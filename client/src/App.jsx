@@ -1,12 +1,17 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import "./App.css";
 import Board from "./Board";
 import TurnManager from "./TurnManager";
 import useCaptureLogic from "./TokenCapture";
+import api from "./services/api";
+import Home from "./pages/Home";
+import Login from "./pages/Login";
+import History from "./pages/History";
 
 const players = ["Blue", "Red", "Green", "Yellow"];
 
-function App() {
+function Game() {
   const [diceValue, setDiceValue] = useState(1);
   const [rolling, setRolling] = useState(false);
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
@@ -154,6 +159,19 @@ function App() {
         )}
       </div>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<Login />} />
+        <Route path="/home" element={<Home />} />
+        <Route path="/history" element={<History />} />
+        <Route path="/game" element={<Game />} />
+      </Routes>
+    </Router>
   );
 }
 
