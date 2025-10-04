@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { mainPath, playerStartIndex, victoryLanes, homePositions } from "./pathData";
+import { mainPath, playerStartIndex, victoryLanes, homePositions } from "./components/pathData";
 import moveSoundFile from "./Assets/move-sound.mp3"; // Import sound file
 
 // Initialize sound outside component to avoid recreation
