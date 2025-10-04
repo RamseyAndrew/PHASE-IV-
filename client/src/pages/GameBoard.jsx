@@ -1,14 +1,32 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../services/api';
+import Board from '../Board';
+import TurnManager from '../TurnManager';
+import useCaptureLogic from '../TokenCapture';
+
+const players = ["Blue", "Red", "Green", "Yellow"];
 
 const GameBoard = () => {
   const { gameId } = useParams();
   const [game, setGame] = useState(null);
   const [moves, setMoves] = useState([]);
   const [currentPlayer, setCurrentPlayer] = useState(null);
-  const [diceRoll, setDiceRoll] = useState(null);
+  const [diceValue, setDiceValue] = useState(1);
+  const [rolling, setRolling] = useState(false);
+  const [diceRolled, setDiceRolled] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  const captureLogic = useCaptureLogic();
+
+  const {
+    moveToken = () => {},
+    positions = {},
+    selectToken = () => {},
+    selectedToken = null,
+    getTokenPosition = () => ({ row: 0, col: 0 }),
+    victories = {},
+  } = captureLogic || {};
 
   useEffect(() => {
     const fetchGameData = async () => {
@@ -34,73 +52,151 @@ const GameBoard = () => {
   }, [gameId]);
 
   const rollDice = () => {
-    const roll = Math.floor(Math.random() * 6) + 1;
-    setDiceRoll(roll);
+    if (rolling || diceRolled) return;
+
+    setRolling(true);
+    const newValue = Math.floor(Math.random() * 6 + 1);
+
+    setTimeout(() => {
+      setDiceValue(newValue);
+      setRolling(false);
+      setDiceRolled(true);
+    }, 1000);
   };
 
-  const makeMove = async (pieceId) => {
-    if (!diceRoll || !currentPlayer) return;
+  const handleTokenMove = async () => {
+    if (!selectedToken || !diceRolled || !currentPlayer) return;
 
     try {
-      const moveData = {
-        dice_roll: diceRoll,
-        piece_id: pieceId,
-        position: calculateNewPosition(pieceId, diceRoll),
+      // Post move to backend
+      await api.post('/moves', {
+        dice_roll: diceValue,
+        piece_id: selectedToken.index + 1,
+        position: 0, // Position calculation can be improved
         player_id: currentPlayer.id,
         game_id: parseInt(gameId)
-      };
+      });
 
-      await api.post('/moves', moveData);
-      // Refresh moves
-      const movesRes = await api.get(`/games/${gameId}/moves`);
-      setMoves(movesRes.data);
-      setDiceRoll(null);
+      moveToken(players[currentPlayer.id - 1], diceValue); // Assuming player.id starts from 1
+
+      if (diceValue !== 6) {
+        nextTurn();
+      } else {
+        setDiceRolled(false);
+      }
     } catch (error) {
       console.error('Error making move:', error);
+      alert('Failed to make move');
     }
   };
 
-  const calculateNewPosition = (pieceId, roll) => {
-    // Simple position calculation - in real Ludo this would be more complex
-    const currentMoves = moves.filter(m => m.player_id === currentPlayer.id && m.piece_id === pieceId);
-    const lastMove = currentMoves[currentMoves.length - 1];
-    const currentPos = lastMove ? lastMove.position : 0;
-    return Math.min(currentPos + roll, 57); // 57 = finished
+  const nextTurn = () => {
+    // For simplicity, cycle through players
+    // In real app, determine next player from backend
+    setDiceRolled(false);
+  };
+
+  const skipTurn = () => {
+    nextTurn();
+  };
+
+  const getRotation = (value) => {
+    switch (value) {
+      case 1: return "rotateX(0deg) rotateY(0deg)";
+      case 2: return "rotateX(-180deg) rotateY(0deg)";
+      case 3: return "rotateY(-90deg)";
+      case 4: return "rotateY(90deg)";
+      case 5: return "rotateX(-90deg)";
+      case 6: return "rotateX(90deg)";
+      default: return "";
+    }
   };
 
   if (loading) return <div>Loading game...</div>;
   if (!game) return <div>Game not found</div>;
 
+  const currentPlayerIndex = 0; // Placeholder, should be from backend
+  const currentPlayerName = players[currentPlayerIndex];
+
   return (
     <div className="game-board">
       <h1>Game #{game.id} - {game.status}</h1>
 
-      <div className="board">
-        {/* Simple board representation - in real Ludo this would be a proper board */}
-        <div className="board-grid">
-          {Array.from({ length: 52 }, (_, i) => (
-            <div key={i + 1} className="board-square">
-              {i + 1}
-            </div>
-          ))}
-        </div>
-      </div>
+      <TurnManager
+        currentPlayerIndex={currentPlayerIndex}
+        onNextTurn={skipTurn}
+        victories={victories}
+      />
+
+      <Board
+        positions={positions}
+        getTokenPosition={getTokenPosition}
+        selectToken={selectToken}
+        selectedToken={selectedToken}
+        currentPlayer={currentPlayerName}
+        diceValue={diceValue}
+      />
 
       <div className="game-controls">
-        <button onClick={rollDice} disabled={diceRoll !== null}>
-          Roll Dice
-        </button>
-        {diceRoll && <p>You rolled: {diceRoll}</p>}
+        <h2>Current Player: <span style={{color: currentPlayerName.toLowerCase()}}>{currentPlayerName}</span></h2>
+        <h3>Dice Value: {diceValue}</h3>
 
-        {diceRoll && (
-          <div className="pieces">
-            <h3>Select piece to move:</h3>
-            {[1, 2, 3, 4].map(pieceId => (
-              <button key={pieceId} onClick={() => makeMove(pieceId)}>
-                Move Piece {pieceId}
-              </button>
-            ))}
+        <div className="container" onClick={rollDice}>
+          <div id="cube" style={{ transform: getRotation(diceValue) }}>
+            <div className="front"><span className="dot dot1" /></div>
+            <div className="back">
+              <span className="dot dot1" />
+              <span className="dot dot2" />
+            </div>
+            <div className="right">
+              <span className="dot dot1" />
+              <span className="dot dot2" />
+              <span className="dot dot3" />
+            </div>
+            <div className="left">
+              <span className="dot dot1" />
+              <span className="dot dot2" />
+              <span className="dot dot3" />
+              <span className="dot dot4" />
+            </div>
+            <div className="top">
+              <span className="dot dot1" />
+              <span className="dot dot2" />
+              <span className="dot dot3" />
+              <span className="dot dot4" />
+              <span className="dot dot5" />
+            </div>
+            <div className="bottom">
+              <span className="dot dot1" />
+              <span className="dot dot2" />
+              <span className="dot dot3" />
+              <span className="dot dot4" />
+              <span className="dot dot5" />
+              <span className="dot dot6" />
+            </div>
           </div>
+        </div>
+
+        <div className="button-controls">
+          <button onClick={rollDice} disabled={rolling || diceRolled}>
+            {rolling ? "Rolling..." : "Roll Dice"}
+          </button>
+
+          {selectedToken && (
+            <button onClick={handleTokenMove} disabled={!diceRolled}>
+              Move Token
+            </button>
+          )}
+
+          {diceRolled && !selectedToken && (
+            <button onClick={skipTurn}>
+              Skip Turn (No Valid Moves)
+            </button>
+          )}
+        </div>
+
+        {selectedToken && (
+          <p>Selected: {selectedToken.player} Token {selectedToken.index + 1}</p>
         )}
       </div>
 
