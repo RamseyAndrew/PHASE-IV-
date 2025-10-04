@@ -105,10 +105,11 @@ function Game() {
     // Track the move immediately after
     if (gameId && playerId && selectedToken) {
       try {
+        const position = getTokenPosition(selectedToken.player, selectedToken.index);
         const moveData = {
           dice_roll: diceValue,
           piece_id: selectedToken.index + 1,
-          position: Math.floor(Math.random() * 52) + 1, // Temporary random position for testing
+          position: position.col + position.row * 15, // Calculate position based on row and col
           player_id: playerId,
           game_id: gameId
         };
@@ -118,6 +119,11 @@ function Game() {
         const response = await api.post('/moves', moveData);
         
         console.log('Move tracked successfully:', response.data);
+
+        // Fetch updated moves list after successful move creation
+        const movesResponse = await api.get(`/games/${gameId}/moves`);
+        console.log('Updated moves list:', movesResponse.data);
+        // You can update state here if you want to display moves in the UI
       } catch (error) {
         console.error('Failed to track move:', error.response?.data || error.message);
       }
