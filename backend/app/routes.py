@@ -72,6 +72,11 @@ def delete_player(id):
     if not player:
         return jsonify({"error": "Player not found"}), 404
 
+    # Delete all moves related to this player first to avoid foreign key constraint error
+    moves = Move.query.filter_by(player_id=id).all()
+    for move in moves:
+        db.session.delete(move)
+
     db.session.delete(player)
     db.session.commit()
 
@@ -143,6 +148,7 @@ def delete_game(id):
 def get_moves():
     moves = Move.query.all()
     return moves_schema.jsonify(moves)
+
 
 
 @api_bp.route("/games/<int:game_id>/moves", methods=["GET"])
