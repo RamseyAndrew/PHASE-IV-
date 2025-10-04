@@ -1,10 +1,14 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import './Token.css';
 
 const Token = ({ row, col, color, isSelected, onClick, animate = true }) => {
-  if (row === null || row === undefined || col === null || col === undefined) return null;
+  // Early return for invalid positions
+  if (row === null || row === undefined || col === null || col === undefined) {
+    return null;
+  }
 
-  const style = {
+  // Memoize style object to prevent unnecessary re-renders
+  const style = useMemo(() => ({
     position: 'absolute',
     left: `${(col * 100/15) + 1}%`,
     top: `${(row * 100/15) + 1}%`,
@@ -20,9 +24,9 @@ const Token = ({ row, col, color, isSelected, onClick, animate = true }) => {
     zIndex: isSelected ? 20 : 10,
     transition: animate ? 'all 0.3s ease-in-out' : 'none',
     cursor: 'pointer',
-  };
+  }), [row, col, color, isSelected, animate]);
 
   return <div className="token" style={style} onClick={onClick} />;
 };
 
-export default Token;
+export default React.memo(Token);

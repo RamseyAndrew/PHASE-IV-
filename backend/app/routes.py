@@ -15,7 +15,7 @@ def get_players():
     try:
         players = Player.query.all()
         return players_schema.jsonify(players)
-    except Exception as e:
+    except Exception:
         return jsonify({"error": "Failed to retrieve players"}), 500
 
 # POST create a new player
@@ -37,10 +37,9 @@ def create_player():
         return player_schema.jsonify(player), 201
     except ValidationError as err:
         return jsonify(err.messages), 400
-    except Exception as e:
+    except Exception:
         db.session.rollback()
-        # Return the actual error message for debugging
-        return jsonify({"error": "Failed to create player", "details": str(e)}), 500
+        return jsonify({"error": "Failed to create player"}), 500
 
 @api_bp.route("/players/<int:id>", methods=["GET"])
 def get_player(id):
@@ -87,8 +86,11 @@ def delete_player(id):
 
 @api_bp.route("/games", methods=["GET"])
 def get_games():
-    games = Game.query.all()
-    return games_schema.jsonify(games)
+    try:
+        games = Game.query.all()
+        return games_schema.jsonify(games)
+    except Exception:
+        return jsonify({"error": "Failed to retrieve games"}), 500
 
 
 @api_bp.route("/games", methods=["POST"])
@@ -101,7 +103,7 @@ def create_game():
         return game_schema.jsonify(game), 201
     except ValidationError as err:
         return jsonify(err.messages), 400
-    except Exception as e:
+    except Exception:
         db.session.rollback()
         return jsonify({"error": "Failed to create game"}), 500
 
@@ -136,18 +138,28 @@ def delete_game(id):
     if not game:
         return jsonify({"error": "Game not found"}), 404
 
+    # Delete all moves related to this game first to avoid foreign key constraint error
+    moves = Move.query.filter_by(game_id=id).all()
+    for move in moves:
+        db.session.delete(move)
+
     db.session.delete(game)
     db.session.commit()
 
     return jsonify({"message": f"Game {id} deleted successfully"})
 
 
+
+
 # Moves routes
 
 @api_bp.route("/moves", methods=["GET"])
 def get_moves():
-    moves = Move.query.all()
-    return moves_schema.jsonify(moves)
+    try:
+        moves = Move.query.all()
+        return moves_schema.jsonify(moves)
+    except Exception:
+        return jsonify({"error": "Failed to retrieve moves"}), 500
 
 
 
@@ -175,6 +187,9 @@ def create_move():
         return move_schema.jsonify(move), 201
     except ValidationError as err:
         return jsonify(err.messages), 400
+    except Exception:
+        db.session.rollback()
+        return jsonify({"error": "Failed to create move"}), 500
 
 
 @api_bp.route("/moves/<int:id>", methods=["GET"])

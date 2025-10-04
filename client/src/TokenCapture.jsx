@@ -2,6 +2,9 @@ import { useState } from "react";
 import { mainPath, playerStartIndex, victoryLanes, homePositions } from "./pathData";
 import moveSoundFile from "./Assets/move-sound.mp3"; // Import sound file
 
+// Initialize sound outside component to avoid recreation
+const moveSound = new Audio(moveSoundFile);
+
 function useCaptureLogic() {
   const [positions, setPositions] = useState({
     Red: [null, null, null, null],
@@ -19,19 +22,16 @@ function useCaptureLogic() {
 
   const [selectedToken, setSelectedToken] = useState(null); // { player, index }
 
-  // Initialize sound
-  const moveSound = new Audio(moveSoundFile);
-
   const selectToken = (player, index, diceValue) => {
     const currentPos = positions[player][index];
 
     if (currentPos === null && diceValue !== 6) {
-      alert("Need to roll 6 to start from home!");
+      console.warn("Need to roll 6 to start from home!");
       return;
     }
 
     if (currentPos === "victory") {
-      alert("This token has already reached home!");
+      console.warn("This token has already reached home!");
       return;
     }
 
@@ -44,7 +44,7 @@ function useCaptureLogic() {
         if (victoryIndex >= victoryLanes[player].length) {
           const movesNeeded = (mainPath.length - playerStartPos) + victoryLanes[player].length - currentPos;
           if (diceValue !== movesNeeded) {
-            alert(`Need exactly ${movesNeeded} to reach home!`);
+            console.warn(`Need exactly ${movesNeeded} to reach home!`);
             return;
           }
         }
@@ -54,15 +54,21 @@ function useCaptureLogic() {
     setSelectedToken({ player, index });
   };
 
-  const moveToken = (player, diceValue) => {
+  const moveToken = (player, diceValue, onMoveComplete) => {
     const tokenToMove = selectedToken;
 
     if (!tokenToMove || tokenToMove.player !== player) return;
 
     
-    moveSound.play().catch((error) => {
-      console.error("Failed to play sound:", error);
-    });
+    // Play sound with proper error handling
+    try {
+      moveSound.currentTime = 0; // Reset to start
+      moveSound.play().catch((error) => {
+        console.warn("Sound playback failed:", error.message);
+      });
+    } catch (error) {
+      console.warn("Sound initialization failed:", error.message);
+    }
 
     setPositions((prev) => {
       const currentPos = prev[player][tokenToMove.index];
@@ -88,7 +94,7 @@ function useCaptureLogic() {
         const victoryIndex = newPos - (playerStartPos + spacesFromStartToEndOfMainPath);
 
         if (victoryIndex >= victoryLanes[player].length) {
-          alert("Cannot overshoot the victory lane! Need exact number to reach home.");
+          console.warn("Cannot overshoot the victory lane! Need exact number to reach home.");
           return prev;
         } else if (victoryIndex === victoryLanes[player].length - 1) {
           newPositions[player][tokenToMove.index] = "victory";
@@ -96,7 +102,7 @@ function useCaptureLogic() {
           setVictories((prevWins) => {
             const updated = { ...prevWins, [player]: prevWins[player] + 1 };
             if (updated[player] === 4) {
-              setTimeout(() => alert(`🎉 ${player} wins the game! 🎉`), 100);
+              setTimeout(() => console.log(`🎉 ${player} wins the game! 🎉`), 100);
             }
             return updated;
           });
@@ -114,7 +120,7 @@ function useCaptureLogic() {
 
           newPositions[otherPlayer] = newPositions[otherPlayer].map((pos, i) => {
             if (pos === newPos && pos !== null && pos !== "victory" && !isSafePosition(newPos)) {
-              setTimeout(() => alert(`${player} captured ${otherPlayer}'s token ${i + 1}!`), 100);
+              setTimeout(() => console.log(`${player} captured ${otherPlayer}'s token ${i + 1}!`), 100);
               return null;
             }
             return pos;

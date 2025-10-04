@@ -8,6 +8,8 @@ import api from "./services/api";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import History from "./pages/History";
+import Moves from "./pages/Moves";
+import GameSelection from "./pages/GameSelection";
 
 const players = ["Blue", "Red", "Green", "Yellow"];
 
@@ -16,8 +18,57 @@ function Game() {
   const [rolling, setRolling] = useState(false);
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
   const [diceRolled, setDiceRolled] = useState(false);
+  const [gameId, setGameId] = useState(null);
+  const [playerId, setPlayerId] = useState(null);
   
   const captureLogic = useCaptureLogic();
+
+  // Initialize game and player on component mount
+  useEffect(() => {
+    const initializeGame = async () => {
+      try {
+        // Get or create player from localStorage
+        let currentPlayerId = null;
+        const storedPlayer = localStorage.getItem('player');
+        
+        if (storedPlayer) {
+          const player = JSON.parse(storedPlayer);
+          currentPlayerId = player.id;
+        } else {
+          // Create a default player for testing
+          const playerResponse = await api.post('/players', { 
+            name: 'Game Player', 
+            score: 0 
+          });
+          currentPlayerId = playerResponse.data.id;
+          localStorage.setItem('player', JSON.stringify(playerResponse.data));
+        }
+        
+        setPlayerId(currentPlayerId);
+
+        // Check if there's a selected game, otherwise create new one
+        const selectedGameId = localStorage.getItem('selectedGameId');
+        let gameResponse;
+        if (selectedGameId) {
+          setGameId(parseInt(selectedGameId));
+          console.log('Using selected game:', selectedGameId);
+        } else {
+          // Create a new game
+          gameResponse = await api.post('/games', { status: 'ongoing' });
+          setGameId(gameResponse.data.id);
+        }
+        
+        console.log('Game initialized:', {
+          gameId: selectedGameId ? parseInt(selectedGameId) : gameResponse.data.id,
+          playerId: currentPlayerId
+        });
+      } catch (error) {
+        console.error('Failed to initialize game:', error);
+      }
+    };
+
+    initializeGame();
+  }, []);
   
   const { 
     moveToken = () => {}, 
@@ -41,17 +92,42 @@ function Game() {
     }, 1000);
   };
 
-  const handleTokenMove = () => {
+  const handleTokenMove = async () => {
     if (!selectedToken || !diceRolled) return;
     
+    console.log('handleTokenMove called:', { selectedToken, diceValue, gameId, playerId });
+    
     const currentPlayer = players[currentPlayerIndex];
+    
+    // Move the token first
     moveToken(currentPlayer, diceValue);
     
+    // Track the move immediately after
+    if (gameId && playerId && selectedToken) {
+      try {
+        const moveData = {
+          dice_roll: diceValue,
+          piece_id: selectedToken.index + 1,
+          position: Math.floor(Math.random() * 52) + 1, // Temporary random position for testing
+          player_id: playerId,
+          game_id: gameId
+        };
+        
+        console.log('Sending move data:', moveData);
+        
+        const response = await api.post('/moves', moveData);
+        
+        console.log('Move tracked successfully:', response.data);
+      } catch (error) {
+        console.error('Failed to track move:', error.response?.data || error.message);
+      }
+    } else {
+      console.log('Missing data for tracking:', { gameId, playerId, selectedToken });
+    }
     
     if (diceValue !== 6) {
       nextTurn();
     } else {
-      
       setDiceRolled(false);
     }
   };
@@ -63,6 +139,39 @@ function Game() {
 
   const skipTurn = () => {
     nextTurn();
+  };
+
+  const handleDeleteGame = async () => {
+    if (!gameId) return;
+    
+    if (window.confirm('Are you sure you want to delete this game? This will remove all move history.')) {
+      try {
+        await api.delete(`/games/${gameId}`);
+        setGameId(null);
+        console.log('Game deleted successfully');
+        alert('Game deleted successfully!');
+      } catch (error) {
+        console.error('Failed to delete game:', error);
+        alert('Failed to delete game');
+      }
+    }
+  };
+
+  const handleDeletePlayer = async () => {
+    if (!playerId) return;
+    
+    if (window.confirm('Are you sure you want to delete this player? This will remove all associated moves.')) {
+      try {
+        await api.delete(`/players/${playerId}`);
+        setPlayerId(null);
+        localStorage.removeItem('player');
+        console.log('Player deleted successfully');
+        alert('Player deleted successfully!');
+      } catch (error) {
+        console.error('Failed to delete player:', error);
+        alert('Failed to delete player');
+      }
+    }
   };
 
   const getRotation = (value) => {
@@ -157,6 +266,54 @@ function Game() {
         {selectedToken && (
           <p>Selected: {selectedToken.player} Token {selectedToken.index + 1}</p>
         )}
+        
+        <div className="game-info" style={{marginTop: '10px', fontSize: '12px', color: '#666'}}>
+          <p>Game ID: {gameId || 'Not initialized'}</p>
+          <p>Player ID: {playerId || 'Not set'}</p>
+          {gameId && (
+            <a href={`/moves/${gameId}`} target="_blank" rel="noopener noreferrer">
+              View Move History
+            </a>
+          )}
+          <br/>
+          <a href="http://localhost:5000/api/moves" target="_blank" rel="noopener noreferrer">
+            View All Moves (API)
+          </a>
+          
+          <div style={{marginTop: '10px'}}>
+            {gameId && (
+              <button 
+                onClick={handleDeleteGame}
+                style={{
+                  backgroundColor: '#ff4444',
+                  color: 'white',
+                  border: 'none',
+                  padding: '5px 10px',
+                  marginRight: '10px',
+                  cursor: 'pointer',
+                  fontSize: '12px'
+                }}
+              >
+                Delete Game
+              </button>
+            )}
+            {playerId && (
+              <button 
+                onClick={handleDeletePlayer}
+                style={{
+                  backgroundColor: '#ff6666',
+                  color: 'white',
+                  border: 'none',
+                  padding: '5px 10px',
+                  cursor: 'pointer',
+                  fontSize: '12px'
+                }}
+              >
+                Delete Player
+              </button>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -170,6 +327,8 @@ function App() {
         <Route path="/home" element={<Home />} />
         <Route path="/history" element={<History />} />
         <Route path="/game" element={<Game />} />
+        <Route path="/moves/:gameId" element={<Moves />} />
+        <Route path="/select-game" element={<GameSelection />} />
       </Routes>
     </Router>
   );
