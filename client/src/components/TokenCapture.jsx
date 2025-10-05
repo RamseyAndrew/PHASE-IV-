@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { mainPath, playerStartIndex, victoryLanes, homePositions } from "./components/pathData";
-import moveSoundFile from "./Assets/move-sound.mp3"; // Import sound file
+import { mainPath, playerStartIndex, victoryLanes, homePositions } from "./pathData";
+import moveSoundFile from "../Assets/move-sound.mp3"; // Import sound file
 
 // Initialize sound outside component to avoid recreation
 const moveSound = new Audio(moveSoundFile);
@@ -54,7 +54,7 @@ function useCaptureLogic() {
     setSelectedToken({ player, index });
   };
 
-  const moveToken = (player, diceValue, onMoveComplete) => {
+  const moveToken = (player, diceValue) => {
     const tokenToMove = selectedToken;
 
     if (!tokenToMove || tokenToMove.player !== player) return;
