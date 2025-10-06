@@ -64,8 +64,9 @@ function Game() {
           }
         }
         
+        const finalGameId = gameIdParam || localStorage.getItem('selectedGameId') || gameResponse?.data?.id;
         console.log('Game initialized:', {
-          gameId: gameIdParam ? parseInt(gameIdParam) : (selectedGameId ? parseInt(selectedGameId) : gameResponse.data.id),
+          gameId: finalGameId,
           playerId: currentPlayerId
         });
       } catch (error) {
@@ -261,11 +262,19 @@ function Game() {
             {rolling ? "Rolling..." : "Roll Dice"}
           </button>
           
-          {selectedToken && (
+          {selectedToken && diceRolled && (
             <button onClick={handleTokenMove} disabled={!diceRolled}>
               Move Token
             </button>
           )}
+          
+          {diceRolled && !selectedToken && (
+            <p style={{color: 'orange'}}>Select a token to move</p>
+          )}
+          
+          <button onClick={skipTurn} disabled={!diceRolled}>
+            Skip Turn
+          </button>
         </div>
 
         {selectedToken && (
@@ -298,6 +307,7 @@ function App() {
         <Route path="/home" element={<Home />} />
         <Route path="/history" element={<History />} />
         <Route path="/game" element={<Game />} />
+        <Route path="/game/:gameId" element={<Game />} />
         <Route path="/select-game" element={<GameSelection />} />
       </Routes>
     </Router>
