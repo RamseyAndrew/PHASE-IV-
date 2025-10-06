@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import "./App.css";
 import Board from "./Board";
 import TurnManager from "./TurnManager";
 import useCaptureLogic from "./TokenCapture";
-import api from "../services/api";
+
 import Home from "../pages/Home";
 import Login from "../pages/Login";
 import History from "../pages/History";
@@ -13,62 +13,13 @@ import GameSelection from "../pages/GameSelection";
 
 const players = ["Blue", "Red", "Green", "Yellow"];
 
-function Game() {
+function App() {
   const [diceValue, setDiceValue] = useState(1);
   const [rolling, setRolling] = useState(false);
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
   const [diceRolled, setDiceRolled] = useState(false);
-  const [gameId, setGameId] = useState(null);
-  const [playerId, setPlayerId] = useState(null);
   
   const captureLogic = useCaptureLogic();
-
-  // Initialize game and player on component mount
-  useEffect(() => {
-    const initializeGame = async () => {
-      try {
-        // Get or create player from localStorage
-        let currentPlayerId = null;
-        const storedPlayer = localStorage.getItem('player');
-        
-        if (storedPlayer) {
-          const player = JSON.parse(storedPlayer);
-          currentPlayerId = player.id;
-        } else {
-          // Create a default player for testing
-          const playerResponse = await api.post('/players', { 
-            name: 'Game Player', 
-            score: 0 
-          });
-          currentPlayerId = playerResponse.data.id;
-          localStorage.setItem('player', JSON.stringify(playerResponse.data));
-        }
-        
-        setPlayerId(currentPlayerId);
-
-        // Check if there's a selected game, otherwise create new one
-        const selectedGameId = localStorage.getItem('selectedGameId');
-        let gameResponse;
-        if (selectedGameId) {
-          setGameId(parseInt(selectedGameId));
-          console.log('Using selected game:', selectedGameId);
-        } else {
-          // Create a new game
-          gameResponse = await api.post('/games', { status: 'ongoing' });
-          setGameId(gameResponse.data.id);
-        }
-        
-        console.log('Game initialized:', {
-          gameId: selectedGameId ? parseInt(selectedGameId) : gameResponse.data.id,
-          playerId: currentPlayerId
-        });
-      } catch (error) {
-        console.error('Failed to initialize game:', error);
-      }
-    };
-
-    initializeGame();
-  }, []);
   
   const { 
     moveToken = () => {}, 
@@ -92,48 +43,17 @@ function Game() {
     }, 1000);
   };
 
-  const handleTokenMove = async () => {
+  const handleTokenMove = () => {
     if (!selectedToken || !diceRolled) return;
     
-    console.log('handleTokenMove called:', { selectedToken, diceValue, gameId, playerId });
-    
     const currentPlayer = players[currentPlayerIndex];
-    
-    // Move the token first
     moveToken(currentPlayer, diceValue);
     
-    // Track the move immediately after
-    if (gameId && playerId && selectedToken) {
-      try {
-        const position = getTokenPosition(selectedToken.player, selectedToken.index);
-        const moveData = {
-          dice_roll: diceValue,
-          piece_id: selectedToken.index + 1,
-          position: position.col + position.row * 15, // Calculate position based on row and col
-          player_id: playerId,
-          game_id: gameId
-        };
-        
-        console.log('Sending move data:', moveData);
-        
-        const response = await api.post('/moves', moveData);
-        
-        console.log('Move tracked successfully:', response.data);
-
-        // Fetch updated moves list after successful move creation
-        const movesResponse = await api.get(`/games/${gameId}/moves`);
-        console.log('Updated moves list:', movesResponse.data);
-        // You can update state here if you want to display moves in the UI
-      } catch (error) {
-        console.error('Failed to track move:', error.response?.data || error.message);
-      }
-    } else {
-      console.log('Missing data for tracking:', { gameId, playerId, selectedToken });
-    }
     
     if (diceValue !== 6) {
       nextTurn();
     } else {
+      
       setDiceRolled(false);
     }
   };
@@ -143,8 +63,9 @@ function Game() {
     setDiceRolled(false);
   };
 
-
-
+  const skipTurn = () => {
+    nextTurn();
+  };
 
   const getRotation = (value) => {
     switch (value) {
@@ -162,8 +83,9 @@ function Game() {
 
   return (
     <div className="App">
-      <TurnManager
-        currentPlayerIndex={currentPlayerIndex}
+      <TurnManager 
+        currentPlayerIndex={currentPlayerIndex} 
+        onNextTurn={skipTurn}
         victories={victories}
       />
       
@@ -226,42 +148,19 @@ function Game() {
               Move Token
             </button>
           )}
+          
+          {diceRolled && !selectedToken && (
+            <button onClick={skipTurn}>
+              Skip Turn (No Valid Moves)
+            </button>
+          )}
         </div>
 
         {selectedToken && (
           <p>Selected: {selectedToken.player} Token {selectedToken.index + 1}</p>
         )}
-        
-        <div className="game-info" style={{marginTop: '10px', fontSize: '12px', color: '#666'}}>
-          <p>Game ID: {gameId || 'Not initialized'}</p>
-          <p>Player ID: {playerId || 'Not set'}</p>
-          {gameId && (
-            <a href={`/moves/${gameId}`} target="_blank" rel="noopener noreferrer">
-              View Move History
-            </a>
-          )}
-          <br/>
-          <a href="http://localhost:5000/api/moves" target="_blank" rel="noopener noreferrer">
-            View All Moves (API)
-          </a>
-        </div>
       </div>
     </div>
-  );
-}
-
-function App() {
-  return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="/home" element={<Home />} />
-        <Route path="/history" element={<History />} />
-        <Route path="/game" element={<Game />} />
-        <Route path="/moves/:gameId" element={<Moves />} />
-        <Route path="/select-game" element={<GameSelection />} />
-      </Routes>
-    </Router>
   );
 }
 
