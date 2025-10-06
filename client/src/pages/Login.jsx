@@ -30,7 +30,7 @@ const Login = () => {
       navigate('/home');
     } catch (error) {
       console.error('Login error:', error);
-      setError('Failed to create player');
+      setError('A player with this name may already exist. Please choose a different name.'); // More specific error message
     }
   };
 
@@ -41,7 +41,7 @@ const Login = () => {
 
   return (
     <div className="login">
-      <h1>Login / Create Player</h1>
+      <h1>Create Player</h1>
       <form onSubmit={handleSubmit}>
         <label htmlFor="name">Player Name:</label>
         <input

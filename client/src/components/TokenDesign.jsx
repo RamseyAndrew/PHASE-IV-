@@ -89,3 +89,5 @@ const Token = ({ row, col, color, onClick, isSelected = false, canMove = false }
     </div>
   );
 };
+
+export default Token;

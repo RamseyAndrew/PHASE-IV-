@@ -9,7 +9,7 @@ const playerColors = {
   Yellow: "gold",
 };
 
-function TurnManager({ currentPlayerIndex, onNextTurn, victories = {} }) {
+function TurnManager({ currentPlayerIndex, victories = {} }) {
   const currentPlayer = players[currentPlayerIndex];
 
   return (

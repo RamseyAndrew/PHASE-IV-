@@ -143,42 +143,8 @@ function Game() {
     setDiceRolled(false);
   };
 
-  const skipTurn = () => {
-    nextTurn();
-  };
 
-  const handleDeleteGame = async () => {
-    if (!gameId) return;
-    
-    if (window.confirm('Are you sure you want to delete this game? This will remove all move history.')) {
-      try {
-        await api.delete(`/games/${gameId}`);
-        setGameId(null);
-        console.log('Game deleted successfully');
-        alert('Game deleted successfully!');
-      } catch (error) {
-        console.error('Failed to delete game:', error);
-        alert('Failed to delete game');
-      }
-    }
-  };
 
-  const handleDeletePlayer = async () => {
-    if (!playerId) return;
-    
-    if (window.confirm('Are you sure you want to delete this player? This will remove all associated moves.')) {
-      try {
-        await api.delete(`/players/${playerId}`);
-        setPlayerId(null);
-        localStorage.removeItem('player');
-        console.log('Player deleted successfully');
-        alert('Player deleted successfully!');
-      } catch (error) {
-        console.error('Failed to delete player:', error);
-        alert('Failed to delete player');
-      }
-    }
-  };
 
   const getRotation = (value) => {
     switch (value) {
@@ -196,9 +162,8 @@ function Game() {
 
   return (
     <div className="App">
-      <TurnManager 
-        currentPlayerIndex={currentPlayerIndex} 
-        onNextTurn={skipTurn}
+      <TurnManager
+        currentPlayerIndex={currentPlayerIndex}
         victories={victories}
       />
       
@@ -261,12 +226,6 @@ function Game() {
               Move Token
             </button>
           )}
-          
-          {diceRolled && !selectedToken && (
-            <button onClick={skipTurn}>
-              Skip Turn (No Valid Moves)
-            </button>
-          )}
         </div>
 
         {selectedToken && (
@@ -285,40 +244,6 @@ function Game() {
           <a href="http://localhost:5000/api/moves" target="_blank" rel="noopener noreferrer">
             View All Moves (API)
           </a>
-          
-          <div style={{marginTop: '10px'}}>
-            {gameId && (
-              <button 
-                onClick={handleDeleteGame}
-                style={{
-                  backgroundColor: '#ff4444',
-                  color: 'white',
-                  border: 'none',
-                  padding: '5px 10px',
-                  marginRight: '10px',
-                  cursor: 'pointer',
-                  fontSize: '12px'
-                }}
-              >
-                Delete Game
-              </button>
-            )}
-            {playerId && (
-              <button 
-                onClick={handleDeletePlayer}
-                style={{
-                  backgroundColor: '#ff6666',
-                  color: 'white',
-                  border: 'none',
-                  padding: '5px 10px',
-                  cursor: 'pointer',
-                  fontSize: '12px'
-                }}
-              >
-                Delete Player
-              </button>
-            )}
-          </div>
         </div>
       </div>
     </div>

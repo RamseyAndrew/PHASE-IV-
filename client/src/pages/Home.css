@@ -1,0 +1,183 @@
+/* === General Layout === */
+body {
+  background: linear-gradient(135deg, #ecf0f1, #dce3e8);
+  font-family: 'Poppins', 'Segoe UI', sans-serif;
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Container */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Main Header */
+h1 {
+  text-align: center;
+  margin-bottom: 2rem;
+  font-weight: 700;
+  font-size: 2rem;
+  color: #2c3e50;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Dashboard Layout */
+.dashboard {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 2rem;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+/* Section Styling */
+section {
+  flex: 1;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  padding: 1.5rem;
+  min-width: 350px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+section:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+}
+
+/* Section Headers */
+section h2 {
+  font-size: 1.3rem;
+  margin-bottom: 1rem;
+  color: #34495e;
+  text-align: center;
+  border-bottom: 2px solid #2980b9;
+  padding-bottom: 0.5rem;
+}
+
+/* Flex list for cards */
+.flex-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+}
+
+/* Card Styles */
+.card {
+  background: #fefefe;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  padding: 1rem;
+  width: 180px;
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.15);
+}
+
+/* Titles and Text */
+.card h3 {
+  margin: 0 0 0.5rem 0;
+  font-weight: 600;
+  color: #2980b9;
+}
+
+.card p {
+  margin: 0.25rem 0 1rem 0;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+/* === Buttons === */
+button {
+  position: relative;
+  background-color: #2980b9;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin: 0.3rem;
+  overflow: hidden;
+  transition: transform 0.2s ease, background-color 0.3s ease;
+}
+
+/* Shimmer animation on hover */
+button::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -75px;
+  width: 50px;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.5);
+  transform: skewX(-20deg);
+  transition: 0.5s;
+}
+
+button:hover::before {
+  left: 125%;
+}
+
+button:hover {
+  background-color: #1c5980;
+  transform: translateY(-2px);
+}
+
+/* Cancel button */
+button.cancel {
+  background-color: #7f8c8d;
+}
+
+button.cancel:hover {
+  background-color: #606c6f;
+}
+
+/* Input Fields */
+input[type="text"] {
+  padding: 0.5rem 0.7rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  margin-right: 0.5rem;
+  width: 140px;
+  transition: border 0.3s ease;
+}
+
+input[type="text"]:focus {
+  outline: none;
+  border-color: #2980b9;
+}
+
+/* Links */
+a {
+  color: #2980b9;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Responsive Design */
+@media (max-width: 900px) {
+  .dashboard {
+    flex-direction: column;
+    align-items: center;
+  }
+}

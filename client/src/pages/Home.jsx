@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
+import './Home.css';
 
 const Home = () => {
   const [players, setPlayers] = useState([]);
@@ -93,7 +94,7 @@ const Home = () => {
   if (loading) return <div>Loading...</div>;
 
   return (
-    <div>
+    <div className="container">
       <h1>Ludo Game</h1>
 
       <section>
@@ -110,12 +111,12 @@ const Home = () => {
               onChange={(e) => setNewPlayerName(e.target.value)}
             />
             <button onClick={createPlayer}>Add Player</button>
-            <button onClick={() => setShowPlayerForm(false)}>Cancel</button>
+            <button className="cancel" onClick={() => setShowPlayerForm(false)}>Cancel</button>
           </div>
         )}
-        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+        <div className="flex-list">
           {players.map((player) => (
-            <div key={player.id} style={{ border: '1px solid #ccc', padding: '1rem' }}>
+            <div key={player.id} className="card">
               <h3>{player.name}</h3>
               <p>Score: {player.score}</p>
               <button onClick={() => deletePlayer(player.id)}>Delete</button>
@@ -138,12 +139,12 @@ const Home = () => {
               onChange={(e) => setNewGameStatus(e.target.value)}
             />
             <button onClick={createGame}>Add Game</button>
-            <button onClick={() => setShowGameForm(false)}>Cancel</button>
+            <button className="cancel" onClick={() => setShowGameForm(false)}>Cancel</button>
           </div>
         )}
-        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+        <div className="flex-list">
           {games.map((game) => (
-            <div key={game.id} style={{ border: '1px solid #ccc', padding: '1rem' }}>
+            <div key={game.id} className="card">
               <h3>Game #{game.id}</h3>
               <p>Status: {game.status}</p>
               <a href={`/game/${game.id}`}>Join Game</a>
