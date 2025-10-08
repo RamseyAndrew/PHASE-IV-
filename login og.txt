@@ -1,16 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
-import './login.css'; 
 
 const Login = () => {
   const [name, setName] = useState('');
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
   const [hasExistingPlayer, setHasExistingPlayer] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Check if there's an existing player in localStorage
     const existingPlayer = localStorage.getItem('player');
     if (existingPlayer) {
       setHasExistingPlayer(true);
@@ -19,33 +18,24 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!name.trim()) {
       setError('Name is required');
       return;
     }
-
-    setLoading(true);
     try {
       const response = await api.post('/players', { name });
       const player = response.data;
-
+      // Save player info to localStorage or context for session persistence
       localStorage.setItem('player', JSON.stringify(player));
       navigate('/home');
     } catch (error) {
       console.error('Login error:', error);
-
-      if (error.response && error.response.status === 409) {
-        setError('This player name already exists. Try a different one.');
-      } else {
-        setError('Something went wrong. Please try again later.');
-      }
-    } finally {
-      setLoading(false);
+      setError('A player with this name may already exist. Please choose a different name.'); // More specific error message
     }
   };
 
   const handleContinueGame = () => {
+    // Route to game selection page to choose from all games
     navigate('/select-game');
   };
 
@@ -63,21 +53,29 @@ const Login = () => {
             setError('');
           }}
           required
-          autoFocus
-          placeholder="Enter your name"
         />
-
         {error && <p className="error">{error}</p>}
-
-        <button type="submit" disabled={loading}>
-          {loading ? 'Logging in...' : 'Create / Login'}
-        </button>
+        <button type="submit">Create / Login</button>
       </form>
-
+      
       {hasExistingPlayer && (
-        <div className="continue-section">
+        <div style={{ marginTop: '20px', textAlign: 'center' }}>
           <p>Found existing player session</p>
-          <button className="continue-btn" onClick={handleContinueGame}>
+          <button 
+            onClick={handleContinueGame}
+            style={{
+              backgroundColor: '#28a745',
+              color: 'white',
+              border: 'none',
+              padding: '20px 40px',
+              borderRadius: '10px',
+              cursor: 'pointer',
+              fontSize: '24px',
+              fontWeight: 'bold',
+              width: '300px',
+              height: '80px'
+            }}
+          >
             Select Game
           </button>
         </div>

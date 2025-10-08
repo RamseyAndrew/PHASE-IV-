@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, useParams } from "react-router-dom";
 import "./App.css";
@@ -64,6 +65,7 @@ function Game() {
           }
         }
         
+        // eslint-disable-next-line no-undef
         const finalGameId = gameIdParam || localStorage.getItem('selectedGameId') || gameResponse?.data?.id;
         console.log('Game initialized:', {
           gameId: finalGameId,
