@@ -495,6 +495,56 @@ body {
   box-shadow: 0 0 20px #22c55e;
 }
 
+/* ===== TOGGLE MODE BUTTON ===== */
+.toggle-mode {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.toggle-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 10px;
+  transition: color 0.3s ease;
+  text-decoration: underline;
+  font-family: 'Poppins', sans-serif;
+}
+
+.toggle-btn:hover {
+  color: #3b82f6;
+}
+
+/* ===== PASSWORD STRENGTH INDICATOR ===== */
+.password-strength {
+  margin-top: 8px;
+  font-size: 0.85rem;
+  padding: 8px 12px;
+  border-radius: 8px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.password-strength.weak {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+}
+
+.password-strength.medium {
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  color: #fcd34d;
+}
+
+.password-strength.strong {
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  color: #86efac;
+}
+
 /* ===== RESPONSIVE ===== */
 @media (max-width: 600px) {
   .login-card {
