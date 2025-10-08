@@ -96,17 +96,27 @@ def get_games():
 
 
 @api_bp.route("/games", methods=["POST"])
-@jwt_required()  # Must be logged in to create game
+
 def create_game():
     try:
         data = request.get_json()
+        print("=== RECEIVED DATA ===")
+        print(data)
+        print("=== END DATA ===")
+
         game = game_schema.load(data)
         db.session.add(game)
         db.session.commit()
         return game_schema.jsonify(game), 201
     except ValidationError as err:
+        print("=== VALIDATION ERROR ===")
+        print(err.messages)
+        print("=== END ERROR ===")
         return jsonify(err.messages), 400
-    except Exception:
+    except Exception as e:
+        print("=== EXCEPTION ===")
+        print(str(e))
+        print("=== END EXCEPTION ===")
         db.session.rollback()
         return jsonify({"error": "Failed to create game"}), 500
 
@@ -120,7 +130,7 @@ def get_game(id):
 
 
 @api_bp.route("/games/<int:id>", methods=["PATCH"])
-@jwt_required()  # Must be logged in to update game
+
 def update_game(id):
     game = Game.query.get(id)
     if not game:
@@ -136,7 +146,7 @@ def update_game(id):
 
 
 @api_bp.route("/games/<int:id>", methods=["DELETE"])
-@jwt_required()  # Must be logged in to delete game
+
 def delete_game(id):
     game = Game.query.get(id)
     if not game:

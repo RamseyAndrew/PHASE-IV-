@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import './Home.css';
+import { Link } from 'react-router-dom';
 
 const Home = () => {
   const [players, setPlayers] = useState([]);
   const [games, setGames] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Added state variables for inline forms
+  // State variables for inline forms
   const [showPlayerForm, setShowPlayerForm] = useState(false);
   const [newPlayerName, setNewPlayerName] = useState('');
 
@@ -59,7 +60,6 @@ const Home = () => {
     }
   };
 
-  // Added create player function
   const createPlayer = async () => {
     if (!newPlayerName.trim()) {
       alert('Player name cannot be empty');
@@ -70,24 +70,21 @@ const Home = () => {
       setNewPlayerName('');
       setShowPlayerForm(false);
       await fetchPlayers();
-    } catch {
-      alert('Failed to create player');
+    } catch (error) {
+      console.error('Failed to create player:', error.response?.data);
+      alert(`Failed to create player: ${JSON.stringify(error.response?.data)}`);
     }
   };
 
-  // Added create game function
   const createGame = async () => {
-    if (!newGameStatus.trim()) {
-      alert('Game status cannot be empty');
-      return;
-    }
     try {
       await api.post('/games', { status: newGameStatus });
       setNewGameStatus('ongoing');
       setShowGameForm(false);
       await fetchGames();
-    } catch {
-      alert('Failed to create game');
+    } catch (error) {
+      console.error('Failed to create game:', error.response?.data);
+      alert(`Failed to create game: ${JSON.stringify(error.response?.data)}`);
     }
   };
 
@@ -105,6 +102,7 @@ const Home = () => {
         {showPlayerForm && (
           <div>
             <input
+              id="playerName"
               type="text"
               placeholder="Player Name"
               value={newPlayerName}
@@ -132,12 +130,16 @@ const Home = () => {
         )}
         {showGameForm && (
           <div>
-            <input
-              type="text"
-              placeholder="Game Status"
+            <label htmlFor="gameStatus">Game Status:</label>
+            <select
+              id="gameStatus"
               value={newGameStatus}
               onChange={(e) => setNewGameStatus(e.target.value)}
-            />
+            >
+              <option value="ongoing">Ongoing</option>
+              <option value="finished">Finished</option>
+              <option value="paused">Paused</option>
+            </select>
             <button onClick={createGame}>Add Game</button>
             <button className="cancel" onClick={() => setShowGameForm(false)}>Cancel</button>
           </div>
@@ -147,7 +149,7 @@ const Home = () => {
             <div key={game.id} className="card">
               <h3>Game #{game.id}</h3>
               <p>Status: {game.status}</p>
-              <a href={`/game/${game.id}`}>Join Game</a>
+              <Link to={`/game/${game.id}`}>Join Game</Link>
               <br />
               <button onClick={() => deleteGame(game.id)}>Delete Game</button>
             </div>
